@@ -3,6 +3,8 @@ package br.com.rchlo.store.controller;
 import br.com.rchlo.store.dto.ProductByColorDto;
 import br.com.rchlo.store.dto.ProductDto;
 import br.com.rchlo.store.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,14 +19,23 @@ public class ProductController {
     public ProductController(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
-
+    
     @GetMapping("/products")
+    @Cacheable(value = "listProducts")
     public List<ProductDto> productsByColorReport() {
-        return productRepository.findAllWithImagesCategoryAndSizesOrderByName().stream().map(ProductDto::new).collect(Collectors.toList());
+        return this.productRepository.findAllWithImagesCategoryAndSizesOrderByName()
+                                     .stream()
+                                     .map(ProductDto::new)
+                                     .collect(Collectors.toList());
     }
-
+    
     @GetMapping("/reports/products/by-color")
     public List<ProductByColorDto> productByColorReport() {
-        return productRepository.productsByColor();
+        return this.productRepository.productsByColor();
+    }
+    
+    @GetMapping("/products/clear-cache")
+    @CacheEvict(value = "listProducts")
+    public void productsClearCache() {
     }
 }
