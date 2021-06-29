@@ -28,7 +28,7 @@ class ProductRepositoryTest {
     @BeforeEach
     public void beforeEach() {
         this.entityManager = JPAUtil.getEntityManager();
-        this.productRepository = new ProductRepository(this.entityManager);
+        //this.productRepository = new ProductRepository(this.entityManager);
         this.entityManager.getTransaction().begin();
     }
 
