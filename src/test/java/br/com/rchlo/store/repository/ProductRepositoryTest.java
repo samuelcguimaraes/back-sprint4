@@ -4,86 +4,84 @@ import br.com.rchlo.store.builder.CategoryBuilder;
 import br.com.rchlo.store.builder.ProductBuilder;
 import br.com.rchlo.store.domain.Category;
 import br.com.rchlo.store.domain.Color;
+import br.com.rchlo.store.domain.Product;
 import br.com.rchlo.store.dto.ProductByColorDto;
-import br.com.rchlo.store.repository.util.JPAUtil;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ActiveProfiles;
 
-import javax.persistence.EntityManager;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles(value = "test")
 class ProductRepositoryTest {
-
-    private EntityManager entityManager;
+    
+    @Autowired
     private ProductRepository productRepository;
-
-    @BeforeEach
-    public void beforeEach() {
-        this.entityManager = JPAUtil.getEntityManager();
-        //this.productRepository = new ProductRepository(this.entityManager);
-        this.entityManager.getTransaction().begin();
-    }
-
-    @AfterEach
-    public void afterEach() {
-        this.entityManager.getTransaction().rollback();
-    }
-
+    
+    @Autowired
+    private TestEntityManager entityManager;
+    
     @Test
     void shouldListAllProductsOrderedByName() {
         Category infantil = this.aCategory();
-    
+        
         this.aProduct(infantil);
         this.anotherProduct(infantil);
-
-        /*List<Product> products = productRepository.findAllWithImagesCategoryAndSizesOrderByName();
-
+        
+        List<Product> products = this.productRepository.findAllWithImagesCategoryAndSizes(
+                PageRequest.of(0, 2, Sort.by(Sort.Direction.ASC, "name")));
+        
         assertEquals(2, products.size());
-
+        
         Product firstProduct = products.get(0);
         assertEquals(7L, firstProduct.getCode());
         assertEquals("Jaqueta Puffer Juvenil Com Capuz Super Mario Branco", firstProduct.getName());
-
+        
         Product secondProduct = products.get(1);
         assertEquals(1L, secondProduct.getCode());
-        assertEquals("Regata Infantil Mario Bros Branco", secondProduct.getName());*/
+        assertEquals("Regata Infantil Mario Bros Branco", secondProduct.getName());
     }
-
+    
     @Test
     void shouldRetrieveProductsByColor() {
         Category infantil = this.aCategory();
-    
+        
         this.aProduct(infantil);
         this.anotherProduct(infantil);
         this.yetAnotherProduct(infantil);
-
+        
         List<ProductByColorDto> productsByColor = this.productRepository.productsByColor();
-        Collections.sort(productsByColor, Comparator.comparing(ProductByColorDto::getColor));
-
+        productsByColor.sort(Comparator.comparing(ProductByColorDto::getColorDescription));
+        
         assertEquals(2, productsByColor.size());
-
+        
         ProductByColorDto firstProductDto = productsByColor.get(0);
-        assertEquals(Color.WHITE.getDescription(), firstProductDto.getColor());
+        assertEquals(Color.WHITE.getDescription(), firstProductDto.getColorDescription());
         assertEquals(2, firstProductDto.getAmount());
-
+        
         ProductByColorDto secondProductDto = productsByColor.get(1);
-        assertEquals(Color.RED.getDescription(), secondProductDto.getColor());
+        assertEquals(Color.RED.getDescription(), secondProductDto.getColorDescription());
         assertEquals(1, secondProductDto.getAmount());
-
+        
     }
-
+    
     private Category aCategory() {
         Category infantil = new CategoryBuilder().withName("Infantil").withSlug("infantil").withPosition(1).build();
         this.entityManager.persist(infantil);
         return infantil;
     }
-
+    
     private void aProduct(Category category) {
         Color color = Color.WHITE;
         this.entityManager.persist(new ProductBuilder().withCode(7L)
@@ -93,7 +91,7 @@ class ProductRepositoryTest {
                                                        .withPrice(new BigDecimal("199.90")).withDiscount(null).withColor(color).withWeightInGrams(147)
                                                        .withCategory(category).build());
     }
-
+    
     private void anotherProduct(Category category) {
         Color color = Color.WHITE;
         this.entityManager.persist(new ProductBuilder().withCode(1L).withName("Regata Infantil Mario Bros Branco")
@@ -102,7 +100,7 @@ class ProductRepositoryTest {
                                                        .withPrice(new BigDecimal("29.90")).withDiscount(null).withColor(color).withWeightInGrams(98)
                                                        .withCategory(category).build());
     }
-
+    
     private void yetAnotherProduct(Category infantil) {
         Color color = Color.RED;
         this.entityManager.persist(new ProductBuilder().withCode(2L).withName("Blusa de Moletom Infantil Mario Bros Vermelho")

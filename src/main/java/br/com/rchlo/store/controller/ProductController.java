@@ -27,7 +27,7 @@ public class ProductController {
     @Cacheable(value = "listProducts")
     public List<ProductDto> productsByColorReport(
             @PageableDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
-        return this.productRepository.findAllWithImagesCategoryAndSizesOrderByName(pageable)
+        return this.productRepository.findAllWithImagesCategoryAndSizes(pageable)
                                      .stream()
                                      .map(ProductDto::new)
                                      .collect(Collectors.toList());
