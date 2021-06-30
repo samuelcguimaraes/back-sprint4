@@ -26,7 +26,8 @@ public class PaymentController {
 
     @GetMapping("/payments/{id}")
     public PaymentDto detail(@PathVariable("id") Long id) {
-        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Payment payment = this.paymentRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         return new PaymentDto(payment);
     }
 
@@ -34,7 +35,7 @@ public class PaymentController {
     @PostMapping("/payments")
     public ResponseEntity<PaymentDto> create(@RequestBody @Valid PaymentForm form, UriComponentsBuilder uriBuilder) {
         Payment payment = form.converter();
-        paymentRepository.save(payment);
+        this.paymentRepository.save(payment);
         URI uri = uriBuilder.path("/payments/{id}").buildAndExpand(payment.getId()).toUri();
         return ResponseEntity.created(uri).body(new PaymentDto(payment));
     }
@@ -42,17 +43,21 @@ public class PaymentController {
     @Transactional
     @PutMapping("/payments/{id}")
     public ResponseEntity<PaymentDto> confirm(@PathVariable("id") Long id) {
-        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        payment.confirm();
-        return ResponseEntity.ok(new PaymentDto(payment));
+    
+        Payment payment = this.paymentRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    
+        return payment.confirm() ? ResponseEntity.ok(new PaymentDto(payment)) : ResponseEntity.badRequest().build();
     }
 
     @Transactional
     @DeleteMapping("/payments/{id}")
     public ResponseEntity<PaymentDto> cancel(@PathVariable("id") Long id) {
-        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        payment.cancel();
-        return ResponseEntity.ok(new PaymentDto(payment));
+    
+        Payment payment = this.paymentRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    
+        return payment.cancel() ? ResponseEntity.ok(new PaymentDto(payment)) : ResponseEntity.badRequest().build();
     }
 
 }

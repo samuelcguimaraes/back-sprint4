@@ -34,23 +34,44 @@ public class Payment {
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
-
+    
     public BigDecimal getValue() {
-        return value;
+        return this.value;
     }
-
+    
     public PaymentStatus getStatus() {
-        return status;
+        return this.status;
     }
-
-    public void confirm() {
+    
+    public boolean confirm() {
+        
+        if (this.isCanceled()) {
+            return false;
+        }
+        
         this.status = PaymentStatus.CONFIRMED;
+        
+        return true;
     }
-
-    public void cancel() {
+    
+    public boolean cancel() {
+        
+        if (this.isConfirmed()) {
+            return false;
+        }
+        
         this.status = PaymentStatus.CANCELED;
+        
+        return true;
     }
-
+    
+    public boolean isConfirmed() {
+        return PaymentStatus.CONFIRMED.equals(this.getStatus());
+    }
+    
+    public boolean isCanceled() {
+        return PaymentStatus.CANCELED.equals(this.getStatus());
+    }
 }
