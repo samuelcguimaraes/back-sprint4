@@ -39,7 +39,7 @@ public class ProductController {
     }
     
     @GetMapping("/products/clear-cache")
-    @CacheEvict(value = "listProducts")
+    @CacheEvict(value = "listProducts", allEntries = true)
     public void productsClearCache() {
     }
 }
